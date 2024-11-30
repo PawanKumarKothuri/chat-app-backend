@@ -1,52 +1,53 @@
+// Import required modules
 const express = require("express");
 const http = require("http");
-// const cors = require("cors");
 const { Server } = require("socket.io");
-
 const cors = require("cors");
 
-app.use(
-  cors({
-    origin: "https://kpk12.netlify.app", // Replace with your Netlify URL
-    methods: ["GET", "POST"],
-  })
-);
-
-
-
+// Initialize Express app
 const app = express();
-app.use(cors());
 
+// Middleware
+app.use(cors({
+  origin: "https://kpk12.netlify.app", // Replace with your deployed frontend URL
+  methods: ["GET", "POST"],
+}));
+app.use(express.json());
+
+// Create HTTP server
 const server = http.createServer(app);
+
+// Initialize Socket.io and configure CORS for WebSocket connections
 const io = new Server(server, {
   cors: {
-    origin: "https://kpk12.netlify.app", // Update with your frontend URL
+    origin: "https://kpk12.netlify.app", // Replace with your deployed frontend URL
     methods: ["GET", "POST"],
   },
 });
 
+// Socket.io events
+io.on("connection", (socket) => {
+  console.log("A user connected");
+
+  // Handle receiving a message
+  socket.on("message", (data) => {
+    console.log("Message received:", data);
+    io.emit("message", data); // Broadcast the message to all connected clients
+  });
+
+  // Handle disconnection
+  socket.on("disconnect", () => {
+    console.log("A user disconnected");
+  });
+});
+
+// Default route for backend health check
 app.get("/", (req, res) => {
   res.send("Chat App Backend is Running");
 });
 
-io.on("connection", (socket) => {
-  console.log(`User connected: ${socket.id}`);
-
-  socket.on("join_room", (room) => {
-    socket.join(room);
-    console.log(`User ${socket.id} joined room ${room}`);
-  });
-
-  socket.on("send_message", (data) => {
-    io.to(data.room).emit("receive_message", data);
-  });
-
-  socket.on("disconnect", () => {
-    console.log(`User disconnected: ${socket.id}`);
-  });
-});
-
-const PORT = 4000;
+// Start the server
+const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
