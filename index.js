@@ -8,10 +8,20 @@ const cors = require("cors");
 const app = express();
 
 // Middleware
+// app.use(cors({
+//   origin: "https://kpk12.netlify.app", // Replace with your deployed frontend URL
+//   methods: ["GET", "POST"],
+// }));
+
+// const cors = require("cors");
+
+// Allow requests from your frontend
 app.use(cors({
-  origin: "https://kpk12.netlify.app", // Replace with your deployed frontend URL
+  origin: ["http://localhost:3000", "https://kpk12.netlify.app"], // Add your frontend URL here
   methods: ["GET", "POST"],
+  credentials: true, // Allow cookies and authentication
 }));
+
 app.use(express.json());
 
 // Create HTTP server
